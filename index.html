@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f7a4d">
+<title>Courses</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root{
+    --bg:#f4f5f2; --card:#ffffff; --ink:#16211b; --muted:#6c7a71;
+    --green:#1f7a4d; --green-soft:#e3f1e8; --line:#e3e7e1;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:calc(92px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+  }
+  header{
+    position:sticky; top:0; z-index:20; background:rgba(244,245,242,.94);
+    backdrop-filter:saturate(1.4) blur(8px); border-bottom:1px solid var(--line);
+    padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  }
+  .top{display:flex; align-items:baseline; justify-content:space-between; gap:12px}
+  h1{font-size:19px; margin:0; letter-spacing:-.01em}
+  #counter{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
+  .bar{height:4px; border-radius:99px; background:#e1e6e0; margin-top:9px; overflow:hidden}
+  #barfill{height:100%; width:0%; background:var(--green); border-radius:99px; transition:width .25s ease}
+  main{padding:12px 12px 4px; max-width:720px; margin:0 auto}
+  section{margin-bottom:14px}
+  h2{
+    font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); margin:16px 6px 7px; font-weight:600;
+  }
+  .card{background:var(--card); border-radius:14px; overflow:hidden; border:1px solid var(--line)}
+  .item{display:flex; align-items:flex-start; gap:11px; padding:13px 12px 13px 13px; border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:0}
+  .item input{
+    appearance:none; -webkit-appearance:none; width:23px; height:23px; margin:1px 0 0;
+    border:2px solid #b9c4bc; border-radius:7px; flex:0 0 23px; position:relative; background:#fff;
+    transition:background .15s, border-color .15s;
+  }
+  .item input:checked{background:var(--green); border-color:var(--green)}
+  .item input:checked::after{
+    content:""; position:absolute; left:7px; top:3px; width:6px; height:11px;
+    border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(42deg);
+  }
+  .item .label{flex:1; min-width:0; cursor:pointer}
+  .item.checked .label{color:#98a49c; text-decoration:line-through}
+  .item .del{
+    border:0; background:transparent; color:#c3ccc5; font-size:20px; line-height:1;
+    padding:0 2px 0 6px; margin-top:-2px; cursor:pointer;
+  }
+  .empty{text-align:center; color:var(--muted); padding:40px 24px}
+  .empty p{margin:0 0 6px}
+  footer{
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--bg) 72%, rgba(244,245,242,0));
+    display:flex; gap:8px; max-width:720px; margin:0 auto;
+  }
+  button{font:inherit; cursor:pointer}
+  .btn{
+    flex:1; border-radius:12px; padding:13px 10px; border:1px solid var(--line);
+    background:#fff; color:var(--ink); font-weight:600; font-size:14px;
+  }
+  .btn.primary{background:var(--green); border-color:var(--green); color:#fff}
+  .btn.small{flex:0 0 auto; padding:9px 12px; font-weight:500; font-size:13px}
+  dialog{
+    border:0; border-radius:18px; padding:0; width:min(560px, calc(100vw - 24px));
+    max-height:min(86vh, 720px); box-shadow:0 18px 50px rgba(0,0,0,.22);
+  }
+  dialog::backdrop{background:rgba(16,26,20,.42)}
+  .dlg{display:flex; flex-direction:column; max-height:min(86vh,720px)}
+  .dlg header{position:static; background:none; padding:16px 18px 8px; border:0}
+  .dlg h3{margin:0; font-size:17px}
+  .dlg .body{padding:4px 18px 8px; overflow:auto; flex:1}
+  .dlg footer{position:static; background:none; padding:10px 18px 16px}
+  textarea{
+    width:100%; min-height:180px; resize:vertical; border:1px solid var(--line);
+    border-radius:12px; padding:12px; font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:#fbfcfb;
+  }
+  label.field{display:block; font-size:13px; color:var(--muted); margin:12px 0 4px}
+  input[type=text],select{
+    width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:11px;
+    font:inherit; background:#fff;
+  }
+  .hint{font-size:13px; color:var(--muted); margin:10px 0 0}
+  .preview{list-style:none; margin:10px 0 0; padding:0; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  .preview li{display:flex; gap:10px; align-items:flex-start; padding:9px 11px; border-bottom:1px solid var(--line); font-size:14px}
+  .preview li:last-child{border-bottom:0}
+  .preview input{width:19px; height:19px; flex:0 0 19px; margin-top:1px; accent-color:var(--green)}
+  .preview .ray{color:var(--muted); font-size:12px; display:block}
+  .toast{
+    position:fixed; left:50%; bottom:calc(100px + env(safe-area-inset-bottom)); transform:translate(-50%,10px);
+    background:#16211b; color:#fff; padding:11px 16px; border-radius:11px; font-size:14px;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:60; max-width:88vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1 id="title">Courses</h1>
+    <span id="counter">0 / 0</span>
+  </div>
+  <div class="bar"><div id="barfill"></div></div>
+</header>
+
+<main id="main"></main>
+
+<footer>
+  <button class="btn" id="menuBtn">Coller un menu</button>
+  <button class="btn" id="addBtn">+ Article</button>
+  <button class="btn primary" id="shareBtn">Partager</button>
+</footer>
+
+<dialog id="menuDlg">
+  <div class="dlg">
+    <header><h3>Coller un menu ou une recette</h3></header>
+    <div class="body">
+      <p class="hint" style="margin-top:0">Collez le texte tel quel : l'app en extrait les ingrédients et les range par rayon.</p>
+      <textarea id="menuText" placeholder="Exemple :&#10;Lundi : poulet rôti, purée&#10;- 1 poulet&#10;- 1 kg de pommes de terre&#10;- 20 cl de crème"></textarea>
+      <div id="previewWrap" hidden>
+        <label class="field">Articles détectés</label>
+        <ul class="preview" id="preview"></ul>
+      </div>
+    </div>
+    <footer style="display:flex; gap:8px">
+      <button class="btn" id="menuCancel">Annuler</button>
+      <button class="btn primary" id="menuAdd">Extraire</button>
+    </footer>
+  </div>
+</dialog>
+
+<dialog id="addDlg">
+  <div class="dlg">
+    <header><h3>Ajouter un article</h3></header>
+    <div class="body">
+      <label class="field">Article</label>
+      <input type="text" id="addText" placeholder="Ex. Papier toilette">
+      <label class="field">Rayon</label>
+      <select id="addAisle"></select>
+    </div>
+    <footer style="display:flex; gap:8px">
+      <button class="btn" id="addCancel">Annuler</button>
+      <button class="btn primary" id="addOk">Ajouter</button>
+    </footer>
+  </div>
+</dialog>
+
+<dialog id="shareDlg">
+  <div class="dlg">
+    <header><h3>Partager la liste</h3></header>
+    <div class="body">
+      <p class="hint" style="margin-top:0">Envoyez ce lien : la liste s'ouvre à l'identique sur l'autre téléphone, avec les cases à cocher.</p>
+      <input type="text" id="shareUrl" readonly>
+      <p class="hint">Chaque modification faite de votre côté se transmet en renvoyant le lien. Pour une synchronisation automatique en direct, il faudra la version avec comptes.</p>
+    </div>
+    <footer style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+      <button class="btn" id="shareCopy">Copier</button>
+      <button class="btn primary" id="shareWa">Envoyer</button>
+    </footer>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var AISLES = ["Fruits et légumes","Boulangerie","Boucherie et poisson","Crémerie","Surgelés","Épicerie","Boissons","Hygiène et maison","Autres"];
+  var STORE_KEY = "courses.v1";
+
+  function norm(s){
+    return s.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[’']/g,"'")
+      .replace(/-/g," ")
+      .replace(/\s+/g," ").trim();
+  }
+
+  var KW = {};
+  function add(a, words){ words.split(",").forEach(function(w){ KW[norm(w)] = a; }); }
+
+  add(0, "pomme de terre,patate douce,pomme,poire,banane,clementine,orange,citron vert,citron,pamplemousse,raisin,fraise,framboise,myrtille,mangue,ananas,kiwi,peche,abricot,prune,melon,pasteque,avocat,tomate,cerise,courgette,aubergine,poivron,concombre,salade,batavia,laitue,mache,roquette,epinard,brocoli,chou-fleur,chou,carotte,butternut,courge,potiron,oignon,echalote,ail,poireau,celeri,navet,betterave,radis,haricot vert,petit pois,champignon,persil,ciboulette,basilic,coriandre,menthe,thym,romarin,gingembre,endive,fenouil,asperge,mais,legume,legumes,fruit,fruits");
+  add(1, "baguette,pain complet,pain de mie,pain,bun,buns,croissant,brioche,bagel,pita,viennoiserie");
+  add(2, "steak hache,steak,pure boeuf,boeuf,poulet,escalope,dinde,porc,cote,saucisse,lardons,jambon,bacon,agneau,veau,poisson,saumon,cabillaud,thon,crevette,merlu,truite,filet,charcuterie,saucisson,viande hachee,viande");
+  add(3, "lait,yaourt,yogourt,fromage blanc,petit-suisse,petits-suisses,fromage,beurre,creme fraiche,creme,oeuf,oeufs,skyr,cottage,mascarpone,ricotta,mozzarella,parmesan,chevre,emmental,comte,gruyere,feta,faisselle,lait fermente,beurre doux,beurre sale");
+  add(4, "surgeles,surgelé,glace,frites,pizza surgelee,poisson pane,nuggets,glacons");
+  add(5, "cereales,flocons d'avoine,avoine,riz,pates,spaghetti,penne,macaroni,semoule,couscous,quinoa,boulgour,lentilles,pois chiches,haricots rouges,haricots blancs,conserve,conserve de tomates,tomates concassees,coulis,sauce,huile,vinaigre,sel,poivre,epices,curry,cumin,paprika,cannelle,safran,sucre,farine,levure,chocolat,confiture,miel,compote,biscuit,gateau,cafe,the,infusion,tisane,soupe,bouillon,moutarde,mayonnaise,ketchup,cornichons,olives,chips,cacahuetes,amandes,noix,noisettes,graines,lait de coco,creme de coco,chapelure,pate a tarte,pate brisee,pate feuilletee,nouilles,nouille,cacao,sirop,huile d'olive,legumes secs,tofu");
+  add(6, "eau,eau gazeuse,jus,soda,coca,limonade,biere,vin");
+  add(7, "papier toilette,essuie-tout,mouchoirs,savon,shampooing,dentifrice,lessive,liquide vaisselle,sacs poubelle,eponge,deodorant,rasoir,couches,adoucissant,javel,produit menager,nettoyant,pile,piles,pate a fixer,pate a fixe");
+
+  var KW_KEYS = Object.keys(KW).sort(function(a,b){ return b.length - a.length; });
+  var KW_RE = KW_KEYS.map(function(k){
+    var e = k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    return { k:k, a:KW[k], re:new RegExp("(^|[^a-z0-9])" + e + "(s|es)?([^a-z0-9]|$)") };
+  });
+
+  function aisleFor(text){
+    var t = " " + norm(text) + " ";
+    for (var i=0;i<KW_RE.length;i++){
+      if (KW_RE[i].re.test(t)) return KW_RE[i].a;
+    }
+    return AISLES.length - 1;
+  }
+
+  var AISLE_RULES = [
+    [/fruits? et legumes?|legumes? et fruits?|fruits?$|legumes?$/, 0],
+    [/boulangerie|pain et viennoiserie/, 1],
+    [/boucherie|charcuterie|poissonnerie|viandes?/, 2],
+    [/cremerie|produits laitiers|laitiers/, 3],
+    [/surgele/, 4],
+    [/epicerie|conserves|condiments|petit dejeuner/, 5],
+    [/boissons?/, 6],
+    [/hygiene|entretien|maison|droguerie/, 7]
+  ];
+
+  function aisleFromHeading(line){
+    var t = norm(line);
+    for (var i=0;i<AISLE_RULES.length;i++){
+      if (AISLE_RULES[i][0].test(t)) return AISLE_RULES[i][1];
+    }
+    return -1;
+  }
+
+  var VERBS = /^(faire|cuire|mettre|melanger|ajouter|prechauffer|servir|reserver|emincer|couper|verser|laisser|egoutter|raper|hacher|echauffer|chauffer|enfourner|remuer|battre|napper|saupoudrer|decorer|preparer|revenir|saisir|mijoter|bouillir|peler|epelucher|rincer|tamiser|beurrer|fariner)/;
+  var DAYS = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|petit dejeuner|dejeuner|diner|entree|plat|dessert|gouter|menu|ingredients?|recette|pour \d)/;
+
+  function cleanLine(raw){
+    var s = raw.replace(/^\s*[-–—*•·]\s+/, "")
+               .replace(/^\s*\d+[.)]\s+/, "")
+               .replace(/\*\*/g,"").replace(/__/g,"")
+               .replace(/\s+/g," ").trim();
+    return s.replace(/[.;]+$/,"").trim();
+  }
+
+  function parseMenu(text){
+    var lines = text.split(/\r?\n/);
+    if (lines.length === 1 && text.indexOf(";") > -1) lines = text.split(/;/);
+    var out = [], seen = {}, current = -1;
+    lines.forEach(function(raw){
+      var s = cleanLine(raw);
+      if (!s) return;
+      var trimmed = s.replace(/:$/,"").trim();
+      var h = aisleFromHeading(trimmed);
+      if (h > -1 && trimmed.split(" ").length <= 4 && !/\d/.test(trimmed)) { current = h; return; }
+      if (DAYS.test(norm(s))) return;
+      if (/^(a acheter|liste|menus?|courses|ingredients?|pour la semaine|pour deux|pour \d)/.test(norm(s))) return;
+      if (/:$/.test(s)) return;
+      if (VERBS.test(norm(s))) return;
+      if (s.length > 110) return;
+      if (/^\d+([.,]\d+)?\s*(kg|g|l|cl|ml)$/i.test(s)) return;
+      var a = aisleFor(s);
+      if (a === AISLES.length - 1 && current > -1) a = current;
+      var key = norm(s).replace(/[^a-z0-9 ]/g,"");
+      if (seen.hasOwnProperty(key)) return;
+      seen[key] = 1;
+      out.push({ t: s, a: a });
+    });
+    return out;
+  }
+
+  // ---------- state ----------
+  var state = { title: "Courses", items: [] };
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var d = JSON.parse(raw);
+        if (d && Array.isArray(d.items)) state = { title: d.title || "Courses", items: d.items };
+      }
+    } catch(e){}
+  }
+  function save(){
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  // ---------- encoding ----------
+  function b64urlEncode(str){
+    var bytes = new TextEncoder().encode(str), bin = "";
+    for (var i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+  function b64urlDecode(s){
+    s = s.replace(/-/g,"+").replace(/_/g,"/");
+    while (s.length % 4) s += "=";
+    var bin = atob(s), bytes = new Uint8Array(bin.length);
+    for (var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  function encodeState(){
+    return b64urlEncode(JSON.stringify({
+      v:1, t:state.title,
+      i:state.items.map(function(x){ return [x.t, x.a, x.c ? 1 : 0]; })
+    }));
+  }
+  function decodeState(code){
+    var d = JSON.parse(b64urlDecode(code));
+    if (!d || !Array.isArray(d.i)) return null;
+    return {
+      title: d.t || "Courses",
+      items: d.i.map(function(row){ return { t:String(row[0]), a:Number(row[1])||0, c:!!row[2] }; })
+    };
+  }
+
+  // ---------- render ----------
+  var main = document.getElementById("main");
+  var counter = document.getElementById("counter");
+  var barfill = document.getElementById("barfill");
+  var titleEl = document.getElementById("title");
+
+  function render(){
+    titleEl.textContent = state.title;
+    var done = state.items.filter(function(x){ return x.c; }).length;
+    counter.textContent = done + " / " + state.items.length;
+    barfill.style.width = state.items.length ? (done / state.items.length * 100) + "%" : "0%";
+
+    main.innerHTML = "";
+    if (!state.items.length){
+      var e = document.createElement("div");
+      e.className = "empty";
+      e.innerHTML = "<p><strong>Liste vide</strong></p><p>Collez un menu ou ajoutez un article pour commencer.</p>";
+      main.appendChild(e);
+      return;
+    }
+    var byAisle = {};
+    state.items.forEach(function(it){ (byAisle[it.a] = byAisle[it.a] || []).push(it); });
+
+    AISLES.forEach(function(name, idx){
+      var arr = byAisle[idx];
+      if (!arr || !arr.length) return;
+      var s = document.createElement("section");
+      var h = document.createElement("h2");
+      h.textContent = name + " · " + arr.length;
+      s.appendChild(h);
+      var card = document.createElement("div");
+      card.className = "card";
+      arr.forEach(function(it){
+        var row = document.createElement("div");
+        row.className = "item" + (it.c ? " checked" : "");
+        var cb = document.createElement("input");
+        cb.type = "checkbox"; cb.checked = it.c;
+        cb.setAttribute("aria-label", it.t);
+        cb.addEventListener("change", function(){
+          it.c = cb.checked; save(); render();
+        });
+        var lab = document.createElement("div");
+        lab.className = "label";
+        lab.textContent = it.t;
+        lab.addEventListener("click", function(){
+          it.c = !it.c; save(); render();
+        });
+        var del = document.createElement("button");
+        del.className = "del"; del.textContent = "×";
+        del.setAttribute("aria-label","Supprimer " + it.t);
+        del.addEventListener("click", function(){
+          state.items = state.items.filter(function(x){ return x !== it; });
+          save(); render();
+        });
+        row.appendChild(cb); row.appendChild(lab); row.appendChild(del);
+        card.appendChild(row);
+      });
+      s.appendChild(card);
+      main.appendChild(s);
+    });
+  }
+
+  // ---------- dialogs ----------
+  var menuDlg = document.getElementById("menuDlg");
+  var menuText = document.getElementById("menuText");
+  var previewWrap = document.getElementById("previewWrap");
+  var preview = document.getElementById("preview");
+  var menuAdd = document.getElementById("menuAdd");
+  var parsed = [];
+
+  document.getElementById("menuBtn").addEventListener("click", function(){
+    menuText.value = ""; preview.innerHTML = ""; previewWrap.hidden = true;
+    parsed = []; menuAdd.textContent = "Extraire"; menuDlg.showModal();
+  });
+  document.getElementById("menuCancel").addEventListener("click", function(){ menuDlg.close(); });
+
+  menuAdd.addEventListener("click", function(){
+    if (!parsed.length){
+      parsed = parseMenu(menuText.value);
+      if (!parsed.length){ toast("Aucun ingrédient détecté"); return; }
+      preview.innerHTML = "";
+      parsed.forEach(function(it, i){
+        var li = document.createElement("li");
+        var cb = document.createElement("input");
+        cb.type = "checkbox"; cb.checked = true; cb.dataset.i = i;
+        var wrap = document.createElement("div");
+        var t = document.createElement("div"); t.textContent = it.t;
+        var ray = document.createElement("span"); ray.className = "ray"; ray.textContent = AISLES[it.a];
+        wrap.appendChild(t); wrap.appendChild(ray);
+        li.appendChild(cb); li.appendChild(wrap);
+        preview.appendChild(li);
+      });
+      previewWrap.hidden = false;
+      menuAdd.textContent = "Ajouter à la liste";
+      return;
+    }
+    var added = 0;
+    preview.querySelectorAll("input[type=checkbox]").forEach(function(cb){
+      if (!cb.checked) return;
+      var it = parsed[Number(cb.dataset.i)];
+      state.items.push({ t: it.t, a: it.a, c: false });
+      added++;
+    });
+    save(); render(); menuDlg.close();
+    toast(added + " article" + (added > 1 ? "s" : "") + " ajouté" + (added > 1 ? "s" : ""));
+  });
+
+  var addDlg = document.getElementById("addDlg");
+  var addText = document.getElementById("addText");
+  var addAisle = document.getElementById("addAisle");
+  AISLES.forEach(function(n, i){
+    var o = document.createElement("option"); o.value = String(i); o.textContent = n;
+    addAisle.appendChild(o);
+  });
+  document.getElementById("addBtn").addEventListener("click", function(){
+    addText.value = ""; addAisle.value = String(AISLES.length - 1); addDlg.showModal();
+    setTimeout(function(){ addText.focus(); }, 50);
+  });
+  document.getElementById("addCancel").addEventListener("click", function(){ addDlg.close(); });
+  document.getElementById("addOk").addEventListener("click", function(){
+    var t = addText.value.trim();
+    if (!t) return;
+    var a = Number(addAisle.value);
+    if (a === AISLES.length - 1) a = aisleFor(t);
+    state.items.push({ t: t, a: a, c: false });
+    save(); render(); addDlg.close();
+  });
+  addText.addEventListener("keydown", function(e){ if (e.key === "Enter") document.getElementById("addOk").click(); });
+
+  // ---------- share ----------
+  var shareDlg = document.getElementById("shareDlg");
+  var shareUrl = document.getElementById("shareUrl");
+
+  function currentLink(){
+    return location.origin + location.pathname + "#" + encodeState();
+  }
+  document.getElementById("shareBtn").addEventListener("click", function(){
+    shareUrl.value = currentLink();
+    shareDlg.showModal();
+  });
+  document.getElementById("shareCopy").addEventListener("click", function(){
+    shareUrl.select(); shareUrl.setSelectionRange(0, 9999);
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch(e){}
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(shareUrl.value).then(function(){ toast("Lien copié"); }, function(){ toast(ok ? "Lien copié" : "Copiez le lien manuellement"); });
+    } else {
+      toast(ok ? "Lien copié" : "Copiez le lien manuellement");
+    }
+  });
+  document.getElementById("shareWa").addEventListener("click", function(){
+    var msg = "Notre liste de courses : " + currentLink();
+    window.location.href = "https://wa.me/?text=" + encodeURIComponent(msg);
+  });
+
+  var toastTimer = null;
+  function toast(msg){
+    var el = document.getElementById("toast");
+    el.textContent = msg; el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2200);
+  }
+
+  // ---------- boot ----------
+  load();
+  var hash = location.hash.replace(/^#/, "");
+  if (hash.length > 4){
+    try {
+      var incoming = decodeState(hash);
+      if (incoming && incoming.items.length){
+        if (!state.items.length || confirm("Une liste partagée a été ouverte. Remplacer la liste actuelle par celle-ci ?")){
+          state = incoming;
+          save();
+          history.replaceState(null, "", location.pathname + location.search);
+          setTimeout(function(){ toast("Liste partagée chargée"); }, 250);
+        }
+      }
+    } catch(e){
+      setTimeout(function(){ toast("Lien illisible"); }, 250);
+    }
+  }
+  render();
+})();
+</script>
+</body>
+</html>
